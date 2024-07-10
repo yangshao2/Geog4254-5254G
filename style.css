@@ -6,7 +6,7 @@ body {
 }
 
 header {
-    background: #333;
+    background: #4B9CD3; /* Carolina blue */
     color: #fff;
     padding: 1rem 0;
     text-align: center;
@@ -44,3 +44,4 @@ footer {
     width: 100%;
     bottom: 0;
 }
+
