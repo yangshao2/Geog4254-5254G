@@ -20,7 +20,7 @@
     <main>
         <section id="introduction">
             <h2>General Introduction</h2>
-            <iframe src="general-introduction.html" width="100%" height="600px" style="border:none;"></iframe>
+            <div id="introduction-content"></div>
         </section>
         <section id="topics">
             <h2>Topics</h2>
@@ -48,6 +48,14 @@
         document.getElementById('date').textContent = new Date().toLocaleDateString('en-US', {
             year: 'numeric', month: 'long', day: 'numeric'
         });
+
+        // Load the external HTML content
+        fetch('general-introduction.html')
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('introduction-content').innerHTML = data;
+            })
+            .catch(error => console.error('Error loading introduction:', error));
     </script>
 </body>
 </html>
