@@ -1,0 +1,174 @@
+---
+title: "Lab 1: R for GIS – Fundamentals"
+output: html_document
+---
+## 1. Download lab1 Data and Prepare R Working Directory
+
+Create a folder on the C drive named Geog4254.
+Download lab1.zip from the Canvas website and place it in the C:/Geog4254 folder. Unzip it so you have a folder named lab1 within C:/Geog4254. In the lab1 folder, you'll find a shapefile named y2010_51_pophu.shp.
+
+## 2. Start RStudio and Set Working Directory
+2.1 Open RStudio.
+
+2.2 Go to the Session menu, select Set Working Directory, and then choose Choose Directory
+
+2.3 In the file dialog, navigate to C:/Geog4254/lab1 and click Open.
+
+## 3. Install foundational R geospatial packages
+
+Simple Features (`sf`) is primarily used for vector data, and `terra` is primarily used for raster data.The dplyr library in R provides a suite of functions for efficient data manipulation, enabling intuitive and readable workflows for filtering, transforming, and summarizing data.
+# Uncomment and run the following lines in your R console to install the required packages
+
+# <span style="color: red;"># install.packages('sf')</span>
+
+# <span style="color: red;"># install.packages('terra')</span>
+
+# <span style="color: red;"># install.packages('dplyr')</span>
+
+## 4. Load R libraries
+Students may copy the lines in the gray block directly to the R console to load the necessary libraries. Alternatively, you can start a new script in RStudio, paste these lines into the script, and run them from there. Loading these libraries is essential to ensure that you have the necessary tools for handling spatial data in this lab.
+
+```{r}
+library(sf)
+library(terra)
+library(dplyr)
+```
+
+## 1.1 Working with Shapefile
+
+
+R has a number of libraries for handling shapefiles. In this lab, we’ll focus on the `sf` library. Use the `st_read()` function to read a shapefile. R imports the shapefile as a data frame, named `pophu` here. 
+
+```{r}
+pophu <- st_read('y2010_51_pophu.shp')
+```
+
+***Some useful functions for handling R data frames***
+
+Display the first n rows present in the input data frame:
+```{r}
+head(pophu)
+```
+
+***A brief explanation of the variables in the data frame:***
+
+*STATEFP10: A character variable representing the state FIPS code, uniquely identifying each state.
+
+*COUNTYFP10: A character variable representing the county FIPS code, uniquely identifying each county within a state.
+
+*TRACTCE10: A character variable representing the census tract code, uniquely identifying each tract within a county.
+
+*BLOCKCE: A character variable representing the block code, uniquely identifying each block within a tract.
+
+*BLOCKID10: A character variable representing the complete block identifier, concatenating state, county, tract, and block codes.
+
+*PARTFLG: A character variable indicating whether the block is partially within a specified boundary.
+
+*HOUSING10: A numeric variable indicating the number of housing units in 2010 for each block.
+
+*POP10: A numeric variable indicating the population in 2010 for each block.
+
+*ID: A numeric variable providing a unique identifier for each record.
+
+*geometry: A spatial variable of type MULTIPOLYGON representing the geographical boundaries of each block.
+
+
+***Display summary statistics of the data frame:***
+```{r}
+summary(pophu)
+```
+
+***Display dimension of the data frame:***
+```{r}
+dim(pophu)
+```
+
+***Select a column and assign it to a new variable***
+
+In R, the $ sign is used to extract a specific column (or variable) from a data frame. The following lines extract the column named POP10 from the pophu data frame and then assign it to
+a new variable a.
+```{r}
+a <- pophu$POP10
+```
+
+
+***Select rows and columns from a data frame***
+```{r}
+pophu[1:5, ]    # This selects the first 5 rows of the pophu data frame
+pophu[, 1:3]    # This selects the first 3 columns of the pophu data frame.
+pophu[1:5, 1:3] # This selects the first 5 rows and the first 3 columns of the pophu data frame.
+pophu[, c("HOUSING10", "POP10")] # select variables by column names
+```
+
+***Plot a shapefile is easy, just use plot() function***
+```{r}
+plot(pophu["POP10"])
+```
+
+
+***Select a subset of pophu layer based on attributes***
+
+Similar to select by attributes tool in ArcGIS, the following command selects features using POP10>100 criteria and save results to pophu_sub . 
+```{r}
+pophu_sub <- pophu[pophu$POP10>100,]
+plot(pophu_sub["POP10"])
+```
+
+***Use dplyr functions to handle data frame***
+
+dplyr functions facilitate 'tidy' workflows that many find intuitive. RStudio, which support auto-completion of column names, makes it very appealing for interactive data analysis (https://r.geocompx.org). Below, we demonstrate several dplyr functions for subsetting data frames. 
+
+Use select() function to select columns by name. 
+```{r}
+pophu_sub<-select(pophu,POP10,HOUSING10)
+plot(pophu_sub)
+```
+
+Use filter() function to find rows matching given evaluation criteria. For the following example, a threshold value 1000 is used to identify census blocks
+```{r}
+a<-filter(pophu_sub,POP10>500)
+plot(a)
+```
+
+Use a logical operator & (and) to combine two evaluation criteria 
+```{r}
+a<-filter(pophu_sub,POP10>10&POP10<50)
+plot(a)
+```
+
+The 'pipe' operator %>% allow us to stack dplyr functions. Specifically, the output of a previous function becomes the input of the next function. In the following example, we first use select() function to select 'POP10' and 'HOUSING10' variables from pophu data frame, the resultant data frame is further processed using filter() function. 
+
+```{r}
+a<-pophu %>%
+  select(POP10,HOUSING10) %>% 
+  filter(POP10<2000) 
+plot(a$HOUSING10,a$POP10)
+```
+
+## 1.1 Working with Raster data
+
+In the terra library, the rast() function is used to create or read raster data. It can generate raster objects from various sources, including files, matrices, or other raster objects, facilitating spatial data manipulation and analysis in R. The terra package is known for its efficiency and support for large datasets, making it suitable for geographic and environmental data processing. The resultant variable keeps all original raster properties, including pixel values, resolution, projection information, etc. 
+
+```{r}
+nlcd <- rast('nlcd.tif')
+nlcd
+plot(nlcd)
+```
+
+
+The freq() function generates a frequency table of categorical values. For the NLCD dataset, it provides the pixel values, representing different land cover types, along with their respective counts.
+
+```{r}
+freq(nlcd)
+```
+
+Develop a forest mask (code=1). Note that NLCD uses codes 41, 42, and 43 for deciduous, evergreen, and mixed forests in the original values.
+```{r}
+# Assign the value -1 to forest cover pixels (41, 42, 43)
+nlcd[nlcd >= 41 & nlcd <= 43] <- 1
+# Set all other values to 0
+nlcd[nlcd != 1] <- 0
+plot(nlcd)
+```
+
+

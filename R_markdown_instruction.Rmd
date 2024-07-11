@@ -1,0 +1,56 @@
+---
+title: "Introduction to R Markdown"
+author: "Yang Shao"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+## Introduction to R Markdown
+
+R Markdown is a powerful tool that allows you to create dynamic documents integrating R code and its output with narrative text. This guide will help you get started with using R Markdown for your assignments.
+
+### Prerequisites
+
+1. **R**: Make sure you have R installed on your computer. You can download it from [CRAN](https://cran.r-project.org/).
+2. **RStudio**: Install RStudio, an integrated development environment (IDE) for R, from [RStudio's website](https://www.rstudio.com/products/rstudio/download/).
+
+### Creating an R Markdown Document
+
+1. **Open RStudio**.
+2. **Create a New R Markdown File**:
+   - Go to `File` -> `New File` -> `R Markdown...`
+   - Fill in the details such as the title, author, and default output format (HTML is a good starting point).
+   - Click `OK`.
+
+### Structure of an R Markdown Document
+
+An R Markdown document consists of three main parts:
+
+1. **YAML Header**:
+   - This section is at the top of the document, enclosed in `---`. It includes metadata like the title, author, and output format.
+
+2. **Markdown Text**:
+Use regular Markdown syntax to add narrative text. Markdown allows you to format text using simple symbols.
+
+3. **Code Chunks**:
+Code chunks are sections of the document that contain R code. They are enclosed in triple backticks and start with {r}.
+
+```{r}
+# This is an R code chunk
+summary(cars)
+```
+
+Run a Code Chunk:
+Click the green triangle (Run Current Chunk) in the chunk header or press Ctrl + Shift + Enter (Cmd + Shift + Enter on Mac) with your cursor inside the chunk.
+
+Adding and Running Code Chunks
+Insert a Code Chunk:
+You can insert a code chunk by clicking "Insert Chunk" button -> R in the RStudio toolbar. It looks like a small green plus sign (+), or by typing the chunk delimiters manually.
+
+```{r}
+plot(cars)
+```
+
+### Rendering the Document
+Knit the Document:
+Click the Knit button at the top of the RStudio script editor. This will generate the output document in the format specified in the YAML header (e.g., HTML).
