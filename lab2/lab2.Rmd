@@ -1,0 +1,113 @@
+---
+title: "Lab 2: Characterizing Wildland–Urban Interface in Virginia (2010)"
+output: html_document
+---
+
+***I designed this lab for GEOG4084/5084G. All tasks were previously handled using ArcGIS for that class. Here, we will use R programming to complete the lab. The advantage of using R is that it allows for reproducible and script-based analysis, which facilitates automation, version control, and collaboration. Additionally, R provides extensive packages for spatial analysis and data visualization, making it a powerful tool for geographic data analysis.***
+
+## Introduction ##
+Wildland-urban Interface (WUI) is defined as areas where homes and associated structures are intermixed with forests, shrub lands, and grasslands. Over the last two decades, WUI has received increasing attention in the United States because its role in wildland fire related issues. Every year, numerous homes and structures in WUI are destroyed by wildland fire. In 2003, over 4000 homes were burned and estimate of losses reached to 2 billion U.S. dollars (NIFC 2004; Radeloff et al., 2005a). The overall WUI area in the United States has been steadily increasing since 1970s (Theobald and Romme 2007). Currently, over 30 percent of U.S. housing units are located in WUI. The increasing populations and home structures in WUI, combined with increasing frequency and intensity of wildland fires cause great concerns for local, regional, and federal government agencies. 
+
+Most development in WUI can be considered to be low-density urban expansion phenomenon. Land transformations from forest and other natural lands to urban are typically irreversible and may lead to many ecosystem service related problems such as deterioration of water and air quality (Kalnay and Cai, 2003), loss of biodiversity (McKinney 2002), spread of invasive species (Alston and Richardson 2006), and habitat fragmentation (Radeloff et al. 2005b). Although urban or impervious surface may only account for a small fraction of landscape changes at the WUI, many researchers suggest that urban expansion into natural lands has far-reaching and disproportionate effects on mass, energy, and resource fluxes (Small et al., 2005). There are also health related concerns-- people living at the WUI are in close proximity to wildlands and often more involved in wildland-related outdoor activities, which may increase risks of infectious disease (e.g., Lyme disease) (Orloski et al., 2000). 
+
+Increasing awareness of WUI importance leads to several major efforts in national scale mapping of WUI (e.g., Radeloff et al. 2005a), although the location, spatial distribution, change rates, and future prediction of WUIs are still largely lacking or outdated (Platt, 2010). Most previous studies integrate the U.S. census data (e.g., housing density of census block) and National Land Cover Dataset (NLCD) to define WUI at census block or census block group mapping units. For example, at the U.S. census block level, Radeloff et al. (2005a) used a combination of the following criteria to identify WUI locations:
+
+### <span style="color:red;">1. Housing density greater than 6.17 housing units per km².</span>
+### <span style="color:red;">2. Vegetation cover greater than 50% in a census block.</span>
+
+## Basic Research Intent ##
+Using National Land Cover Database (NLCD) data from 2006 and housing unit counts from 2010 census data, characterize distribution of WUI for selected Virginia counties.  
+
+## Data: ## 
+
+•	Virginia land use and land cover map [nlcd_va_utm17.tif] is derived from National Land Cover Database 2006 (NLCD2006). The NLCD map products are freely available from Multi-Resolution Land Characteristics Consortium (http://www.mrlc.gov/finddata.php). 
+
+•	Sugar Run-Walker Creek watershed shapefile [watershed.shp] 
+
+•	Housing unit data from the US census bureau are provided as a shapefile [y2010_pophu.shp]. 
+
+## Lab steps ##
+Use R script instead of a command-line interface. R script keeps all command lines in one script – it’s easy to revise and re-run the R program.
+
+Here are a couple of instructions to follow:
+
+**Write and Save Your Script**: Use RStudio or any text editor to write your R commands and save them as a .R file. This file will contain all the commands you need to perform your analysis.
+
+**Run the Script**: You can run the entire script in one go or execute line-by-line to check your results and debug if necessary. In RStudio, you can run the script by clicking the "Source" button or by pressing Ctrl+Shift+S.
+
+
+## Step1: import R libraries ##
+```{r}
+library(sf)
+library(terra)
+library(dplyr)
+```
+
+## Step2: Read y2010_51_pophu.shp using st_read() ##
+```{r}
+pophu<-st_read('y2010_51_pophu.shp')
+plot(pophu["POP10"])
+st_crs(pophu)
+```
+
+## Step3: Calculate the area of the census block polygons using st_area ##
+
+The sf package supports the S2 geometry library for spherical geometry operations, which can be used to accurately calculate areas on the Earth's surface without needing to project the data to a planar coordinate system. Specific function used for this is st_area(). The default unit is m2, and we convert the unit to km2. 
+
+```{r}
+areas <- st_area(pophu)/1000000
+```
+
+## Step3: Calculate housing density ##
+hd = Housing number/area 
+We can add a column (i.e., hd) to the pophu data frame
+```{r}
+pophu$hd <- pophu$HOUSING10/areas
+# Initial results for pophu$hd has specific units. Convert 'pophu$hd' to numeric values
+pophu$hd <- as.numeric(pophu$hd)
+#apply the threshold 
+a<-pophu[pophu$hd>6.17,]
+#check initial results 
+plot(a["hd"])
+```
+
+## Step4: Import raster data ##
+Read nlcd raster file using rast() function. 
+
+```{r}
+nlcd<-rast('nlcd.tif')
+plot(nlcd)
+```
+
+Recode NLCD classes into forest (code=1) and non-forest(code=0)
+```{r}
+nlcd[nlcd>=41&nlcd<=43]<-1
+nlcd[nlcd!=1]<-0
+plot(nlcd)
+```
+
+## Perform zonal statistics ## 
+Calculate the mean value of the raster for each polygon to derive percent of forest;
+In the terra package, the extract function can handle cases where the polygon and raster have different projections, but it's generally a good practice to ensure that both datasets use the same coordinate reference system (CRS) before performing spatial operations. This avoids potential issues with misalignment and inaccuracies in the results.
+```{r}
+#use st_transform() to project shapefile 
+pophu <- st_transform(pophu, crs(nlcd))
+zonal_stats <- terra::extract(nlcd, pophu, fun = mean, na.rm = TRUE)
+#Resultant zonal_stats variable has two columns named as ID and NLCD (i.e., %forest)
+```
+
+## Combine results from Zonal stats with pophu data frame ##
+```{r}
+pophu <- cbind(pophu, zonal_stats)
+```
+
+## Identify census blocks as WUIs (i.e., with >= 50% of vegetation cover AND > 6.17 housing units/ km2). ##
+```{r}
+wui<-pophu[pophu$nlcd>0.5&pophu$hd>6.17,]
+plot(wui)
+```
+
+
+ 
+
+
