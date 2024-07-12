@@ -1,0 +1,76 @@
+---
+title: "Fire Fuel Mapping and Modeling in a Forested Environment"
+output: html_document
+---
+
+## Introduction:
+
+ Imagine you have recently been hired as the new GIS technician for Glacier National Park (GNP), Montana. Your first assignment is to evaluate the potential for forest fires in the Park by utilizing the GIS to generate "fire potential" surfaces for a number of variables and then to combine the surfaces to find the most probable locations for forest fires. 
+
+## Background: 
+
+Fuels are the most important factor influencing the ignition, buildup, and behavior of forest fires. Fuel characteristics determine the amount of energy fires will generate, and therefore the amount of energy with which fire fighters must cope. Other factors that are important to fire behavior include soil moisture, wind, and humidity. Fuel load, or the total biomass of the site, is a function of the type of vegetation and its successional stage (the interval since it was last disturbed). A second important variable is the distribution of biomass within size classes.  Small diameter pieces of fuel are more flammable than larger pieces with the same total biomass because the greater surface area allows more air to feed the combustion process. Pine forests tend to contain a large proportion of biomass stored in small size classes, including both small branches and needles. Besides surface area, the energy content of particular types of vegetation, such as pine needles, must also be considered. Pine needles contain particularly large amounts of stored energy because of their high resin and volatile oil contents. The third variable is the division between live and dead wood. Live wood has a higher moisture content than dead wood, and this moisture responds slowly to changing weather conditions like changes in humidity. On the other hand, dead wood reacts to changing weather conditions in a matter of minutes to hours, depending on size. The fourth variable is the density of the fuel bed. This variable is important because it determines the three-dimensional packing of the fuels and therefore influences the transfer of heat from one piece of fuel to another.  Fuels that are spaced too widely slow fire spread, while tightly packed fuels can limit oxygen and combustion.
+
+
+## Data: 
+The data for this lab 
+
+## Objectives: 
+Assess the distribution and level of fuel load (total biomass) within the study area using the “ndvi” (Normalized Difference Vegetation Index) coverage that has been generated for you using a Landsat Thematic Mapper image. The NDVI data roughly indicates the amount of total standing vegetation (which you can think of as biomass) on a per pixel basis. The type of vegetation comprising the biomass influences other fuel load variables. The “landcover” coverage contains general landcover types that have already been classified for you. Also, you’ll be asked to assess topography. First and second order derivatives of the elevation surface, slope angle (defined as the rate of change of elevation) and slope aspect (direction that a surface faces), can be derived to assess the strength and direction of topographic gradients respectively. Conceptually, the calculation of the slope angle and slope aspect at a point can be thought of as fitting a plane to the elevation values of the neighboring points, since a single elevation value has neither a slope angle nor a slope aspect. Although commonly used in the analysis of elevation data, slope angle and slope aspect can be usefully applied to other data sets as well. 
+
+<span style="color: red;">***From these layers and others, utilize the R programming to generate the following hazard factor maps (A-G), given the following information:***</span>
+
+
+(A)	High standing biomass, characterized by NDVI values of >= 200 (FYI, true NDIV values will be between –1 and 1, but this data set has been rescaled to contain values from 0 to 255).
+
+```{r}
+library(sf)
+library(terra)
+#import ndvi.tif 
+ndvi<-rast('ndvi.tif')
+plot(ndvi)
+#reclassify NDVI layer to high biomass (1) and low biomass(0) based on a threshold 
+#value of 200
+ndvi[ndvi>=200]<-1
+ndvi[ndvi!=1]<-0
+plot(ndvi)
+```
+
+
+(B)	High forest fuel loads are directly associated with landcover. Lodgepole pine, brush, Engleman spruce/fir, medium density spruce/fir, and successional vegetation are especially fire prone.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,message = FALSE, warning = FALSE)
+```
+
+```{r}
+library(knitr)
+# Create a data frame
+landcover <- data.frame(
+  Raster_Value = 0:13,
+  Landcover = c("Background", "Water", "Snow/Ice", "Bare Rock", 
+                "Sparse Meadow/Tundra", "Dense Meadow", "Meadow/Forest", 
+                "Rock Ledge", "Dense Brush", "Engleman Spruce/Sub-Ap", 
+                "Medium Sub-Apline Fir", "Sparse Sub-Apline Fir", 
+                "Successional Vegetaion", "Lodgepole Pine")
+)
+
+# Display the table
+kable(landcover, col.names = c("Raster Value", "Landcover"))
+```
+
+(C)	Steep slopes (where slope is greater than 35 degrees) are important since fires spread rapidly up slopes.
+
+(D)	Winds, which can rapidly spread fires, are predominantly from the southwest direction. Slopes facing away from the prevailing winds are generally less windy. 
+
+(E)	Areas along hiking trails are considered high potential fire areas since backcountry hiking and camping is permitted. In addition, trees have been cleared permitting brush and grass to establish, resulting in a relatively high fuel load. Assume the distance that people frequently walk off the trail is 150 meters. 
+
+(F)	Areas within 500 meters water bodies are of low concern, since plant moisture is generally high.  
+
+(G)	Finally, you will need to combine these products. To do this you may want to weight the different hazard factors. Essentially, you will want one composite fire hazard map for the study area, which shows the areas where forest fires are likely to occur, ranked from 'low' to 'medium' to 'high'.
+
+
+## Deliverables
+Write an R script for this lab. Ideally, use R Markdown to generate an HTML file as your lab report. If you are not comfortable or interested in using R Markdown, you may attach the A-G maps to a Word document and upload it to Canvas.
+
+
