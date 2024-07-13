@@ -1,0 +1,216 @@
+---
+title: "R Programming for Geospatial Applications"
+output:
+  powerpoint_presentation: default
+  ioslides_presentation: default
+date: "2024-07-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## The format of this course
+- **Lectures and Lab sessions**
+- **Office Hours: Wednesday 3:30PM-4:30PM**
+
+- **Grading:**
+ 
+  -Labs and assignments - 75%
+ 
+  -Midterm exam (or project) - 10%
+ 
+  -Final project – 15%
+
+## Outline
+
+- R/Python/Matlab for geospatial research
+
+- Data types and plots in R
+
+- Software preparation (R, Rstudio, sf library, terra library, and mapview)  
+
+
+## Data types in R
+R has a wide variety of data types including scalars, vectors, matrices, data frames, and lists.
+
+Scalar: a single number 
+```{r, echo = TRUE}
+x <- 1
+y <- 3
+print(x+y)
+```
+
+## Vectors
+Using c() or combine function: 
+```{r, echo=TRUE}
+# numeric vector
+x <- c(1,2,5.3,6,-2,4)
+# character vector
+y <- c('VT','CNRE','Geography')                               
+#Refer to elements of a vector using subscripts.
+print(y[1:2])
+```
+## matrices
+```{r,, echo=TRUE}
+## Define the matrix
+m <- matrix(c(1,2,3,3,2,1),nrow=3,ncol=2)
+print(m)
+## Refer to elements of a matrix:
+m[,1]
+m[2,]
+```
+## data frame: 
+A data frame is used for storing data tables. It is a list of vectors of equal length. For example, the following variable df is a data frame containing three vectors n, s, b.
+```{r,echo=TRUE}
+n<-c(2,3,5)
+s<-c('aa','bb','cc')
+b<-c(TRUE,FALSE,TRUE)
+df=data.frame(n,s,b)
+print(df)
+```
+
+## Lists
+A list is an R data structure that can hold elements of different types (like numbers, strings, vectors, and another list). Lists are a powerful and flexible way to group related objects.
+
+
+```{r,echo=TRUE}
+# Create a list
+my_list <- list(name = "John", age = 25, scores = c(90, 85, 88))
+# Print the list
+print(my_list)
+# Access elements of a list
+print(my_list$name)
+print(my_list$scores)
+```
+
+## Summary Table
+```{r}
+library(knitr)
+data_types <- data.frame(
+  "Data Type" = c("Scalar", "Vector", "Matrix", "Data Frame", "List"),
+  "Description" = c("A single number", "A sequence of data elements", "A 2-dimensional array", "A table of data", "A collection of objects"),
+  "Example" = c("x <- 1", "x <- c(1, 2, 3)", "m <- matrix(1:6, nrow=2)", "df <- data.frame(x, y, z)", "l <- list(a, b, c)")
+)
+kable(data_types, format = "markdown")
+
+```
+
+## Key Functions
+
+Here are some key functions for working with data types in R:
+
+*length()*: Get the number of elements in a vector.
+
+*nrow()*, *ncol()*: Get the number of rows and columns in a matrix or data frame.
+
+*str()*: Display the structure of an R object.
+
+*summary()*: Provide a summary of an R object.
+
+*names()*: Get or set the names of elements in a list or data frame.
+
+
+## Basic R Plots
+
+R provides a variety of plotting functions to create basic visualizations. Here are a few examples:
+
+Scatter Plot - A scatter plot is used to plot points on a graph.
+```{r,echo=TRUE}
+# Create sample data
+x <- rnorm(100)
+y <- rnorm(100)
+
+# Create scatter plot
+plot(x, y, main="Scatter Plot", xlab="X-axis", ylab="Y-axis", pch=19, col="blue")
+
+```
+
+## Line Plot
+A line plot is used to plot lines on a graph.
+
+```{r,echo=TRUE}
+# Create sample data
+x <- 1:10
+y <- c(2, 3, 5, 7, 11, 13, 17, 19, 23, 29)
+
+# Create line plot
+plot(x, y, type="o", main="Line Plot", xlab="X-axis", ylab="Y-axis", col="red")
+
+```
+
+## Bar Plot
+A bar plot is used to display data with rectangular bars.
+```{r,echo=TRUE}
+# Create sample data
+counts <- table(mtcars$cyl)
+
+# Create bar plot
+barplot(counts, main="Bar Plot", xlab="Number of Cylinders", ylab="Frequency", col="green")
+
+```
+
+## Histogram
+A histogram is used to display the distribution of a dataset.
+```{r,echo=TRUE}
+# Create sample data
+data <- rnorm(1000)
+
+# Create histogram
+hist(data, main="Histogram", xlab="Value", col="purple", border="white")
+
+```
+
+## Box Plot
+A box plot is used to display the distribution of data based on a five-number summary.
+```{r,echo=TRUE}
+# Create sample data
+data <- rnorm(100)
+
+# Create box plot
+boxplot(data, main="Box Plot", ylab="Values")
+
+```
+
+## Software Preparation: R
+Installation
+Visit CRAN to download the latest version of R.
+
+https://cran.r-project.org/bin/windows/base/
+
+Follow the installation instructions for your operating system (Windows, macOS, Linux).
+
+
+## RStudio is an integrated development environment (IDE) for R.
+Installation
+Visit RStudio to download the latest version of RStudio.
+
+https://posit.co/download/rstudio-desktop/
+
+Install RStudio after installing R.
+
+**Basic Features**
+
+*-Script editor*
+
+*-Console*
+
+*-Environment/History*
+
+*-Plots/Files/Packages/Help*
+
+
+## Software Preparation
+
+The *sf* package provides simple features for R, making it easy to handle spatial data.
+
+The *terra* package is used for spatial data manipulation, providing functions to create, read, manipulate, and analyze raster and vector data.
+
+The *mapview* package allows for quick and easy interactive visualization of spatial data.
+
+install.packages("sf")
+
+install.packages("terra")
+
+install.packages("mapview")
+
