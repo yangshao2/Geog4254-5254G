@@ -1,0 +1,110 @@
+---
+title: "Lab Instruction: Downloading and Analyzing ACS Data in R"
+output: html_document
+date: "2024-07-13"
+---
+
+## Objective
+
+This lab aims to guide you through downloading American Community Survey (ACS) data, specifically focusing on income at the census tract level in Virginia. By the end of this lab, you will be able to:
+
+*Access and download ACS data for Virginia.*
+
+*Process and clean the data.*
+
+*Perform basic analysis on income and education levels.*
+
+Before starting, make sure you have the following packages installed. 
+
+#install.packages("tidyverse")
+
+#install.packages("tidycensus")
+
+#install.packages("sf")
+
+#install.packages("tigris")
+
+## Steps
+
+## Step 1: Load Required Libraries
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(tigris)
+```
+
+## Step 2: Set Up Census API Key
+You need a Census API key to access ACS data. If you don't have one, you can request it here
+at https://api.census.gov/data/key_signup.html Once you have your key, set it up in R.
+
+
+```{r}
+#please replace the API Key
+#census_api_key("e23a9a88f3a3911be51aed1a0e9c595a10e35b59", install = TRUE)
+census_api_key("e23a9a88f3a3911be51aed1a0e9c595a10e35b59", overwrite = TRUE)
+readRenviron("~/.Renviron")
+```
+## Step 3: Download ACS Data
+Use the tidycensus package to download ACS data. We'll focus on median household income and education attainment levels for Virginia.
+
+
+```{r}
+# Define variables for median household income
+variables <- c(income = "B19013_001")
+# Download data for Virginia
+acs_data_va <- get_acs(
+  geography = "tract",
+  variables = variables,
+  state = "VA",
+  year = 2020,
+  survey = "acs5",
+  geometry = TRUE
+)
+
+# View the first few rows of the data
+head(acs_data_va)
+
+```
+## Step 4: Rename columns for clarity
+```{r}
+colnames(acs_data_va) <- c("GEOID", "NAME", "variable","Median_Income", "moe","geometry")
+```
+
+## Step 5: Perform Basic Analysis
+Perform basic analysis to explore income levels.
+
+```{r}
+# Summary statistics for median income
+summary(acs_data_va$Median_Income)
+
+# Plot median income distribution
+ggplot(acs_data_va, aes(x = Median_Income)) +
+  geom_histogram(binwidth = 5000, fill = "blue", color = "black") +
+  labs(title = "Distribution of Median Household Income in Virginia",
+       x = "Median Household Income",
+       y = "Frequency")
+```
+
+
+## Step 6: Map Visualization
+Visualize the data on a map.
+```{r}
+# Plot median income on a map
+ggplot(acs_data_va) +
+  geom_sf(aes(fill = Median_Income)) +
+  scale_fill_viridis_c() +
+  labs(title = "Median Household Income by Census Tract in Virginia",
+       fill = "Median Income")
+```
+
+## Step 7: Write Data to a Shapefile
+Save the processed data as a shapefile.
+
+```{r}
+st_write(acs_data_va, "acs_data_va.shp")
+```
+
+
+
