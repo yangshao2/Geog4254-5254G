@@ -1,0 +1,101 @@
+---
+title: "Digital Image Classification using R"
+output: html_document
+date: "2024-07-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Objective
+To implement digital image classification with R
+
+## Background
+Since the advent of space-borne digital remote sensing, the land surface is essentially scanned as digital images whose brightness is proportional to the reflected energy in a predetermined spectrum in a wall-to-wall manner. Multispectral images are composed of multiple such images,  each of which is generated from a different spectrum, such as Landsat TM/ETM+/OLI imagery contains such images from 6 difference ranges of wavelengths (also called channels or bands). Percent energy reflected in a particular wavelength is an inherent physical properly of the land surface features. Therefore, it is possible to sort the land surface into different features based on the percentage energy returned from the land surface in different spectrum. This process is called digital image classification. It is one of the most common applications of optical remote sensing. Therefore numerous algorithms have been developed in literature. It is impossible to review all of them in a single laboratory exercise. In general, there are two kinds of algorithms: (1) those based on image statistics, and (2) those based on machine learning. The machine learning algorithms, such as CART (Classification and Regression Trees), artificial neural networks, Random Forest, and support vector machine, more or less function as a black box. Users usually do not have a clear idea for how the work gets done. Because the classification is based on learning, no statistical parameters are used, thus they are also called the nonparametric algorithms. Since no statistical parameters (e.g. the mean and variance) are used in the classification, there is no need to assume that image data follows a particular statistical distribution (e.g. normal distribution). This is a big advantage of machine learning algorithms. 
+
+## Data
+
+We will use a Landsat8 OLI image for the classification. The image covers a portion of Shanghai city, China. The acquisition date for this image is August 3 2015. The Landsat image can be downloaded from the glovis website (https://glovis.usgs.gov) or Earthexplorer (https://earthexplorer.usgs.gov/). For this lab, we will only use a spatial subset of this landsat image. It’s available in the lab folder [b2-b7.tif]. 
+
+## Load Required Libraries
+
+```{r}
+library(sf)
+library(terra)
+library(mapview)
+```
+
+## list all landsat tif files in the lab fold, then import these bands to a multilayer raster object (landsat). 
+```{r}
+tifs<-list.files('.',pattern='*.tif$')
+landsat <- rast(tifs)
+plot(landsat)
+```
+
+## Collect training data
+Training sets are areas that you delineate in the image with known land-cover types. The computer will use the training sets as examples for each of the classes you specify and classify the rest of the image into these classes. A training set can be all pixels within a polygon, all pixels along a line, or a collection of points. Depending on the classifier you choose for the classification, these data will be used differently. Normally you would use ArcGIS/QGIS/ENVI software to draw training areas/polygons for each land cover class. For this lab, we will use a shapefile [trainingsamples.shp] that includes training polygons for five land cover classes of water, urban, forest, ag, and barren. The shapefile is available in your lab folder.
+
+```{r}
+training_poly<-st_read('trainingsamples.shp')
+#load the landsat image boundary file to see the overlay 
+imageboundary<-st_read('imageboundary.shp')
+mapview(imageboundary)+mapview(training_poly)
+```
+
+## prepare the training data set 
+```{r}
+# Generate unique IDs for each polygon if not already present
+training_poly$ID <- 1:nrow(training_poly)
+# Extract pixel values from the Landsat raster based on the training polygons
+extracted_values <- extract(landsat, training_poly, method = "simple", df = TRUE)
+# Assuming the land cover field name in the training polygons is 'classid'
+training_data <- merge(extracted_values, as.data.frame(training_poly)[, c("ID", "classid")], by = "ID")
+##remove the "ID" column so you only have landsat pixel values and class labels
+training_data <- training_data[, -which(names(training_data) == "ID")]
+```
+
+
+## Build a random forest classifier using the training dataset you just created. 
+The Random forest algorithm is an extension of classification and regression trees (CART). It grows a large number of decision trees and then takes an ensemble approach to obtain final predictions (Breiman, 2001). The random forest algorithm is now increasingly used in the remote sensing community due to its good balance of generalization ability with ease of implementation. Compared to other machine learning algorithms such as neural networks and support vector machines, the RF requires less parameter adjusting or tuning.
+
+You need R randomForest package for this step. So please use install.packages() function to install randomForest library. After installation, you may use the following command to build a random forest classifier. 
+### install.packages('randomForest')
+```{r}
+library(randomForest)
+rftree <- randomForest(as.factor(classid) ~. , data = training_data)
+#Note that as.factor() function is included to convert classid variable to R factors. We need to categorize classid value to five land cover classes, otherwise classid will be treated as continuous values (1-5 as numbers). 
+```
+
+# Prepare the Landsat data for prediction
+Flatten the Landsat raster to a data frame, retaining pixel indices
+```{r}
+landsat_df <- as.data.frame(landsat, xy = TRUE)
+# Remove the xy coordinates for prediction
+landsat_values <- landsat_df[, -c(1, 2)]
+# Make predictions using the random forest model
+predictions <- predict(rftree, newdata = landsat_values)
+```
+
+#The predicted value can be saved in a Raster object using band2 (or any other bands) as the template.   
+```{r}
+temp<-rast('b2.tif')
+# Fill the raster with predictions
+output <- setValues(temp, predictions)
+plot(output)
+```
+
+# Save the output raster as a .tif file
+```{r}
+writeRaster(output, "random_forest_predictions.tif", overwrite = TRUE)
+```
+
+Lab Questions:
+
+1. Generate a land cover map using the Random Forest algorithm. Attach the land cover figure. Use the tmap() library for the map.
+
+2. Based on your land cover map, please report the areas for the land cover classes of urban, cropland, forest, and water.
+
+3. Generate an NDVI map. For Landsat 8 OLI data, band 4 is the NIR band and band 3 is the RED band. Please refer to the lecture PPT for the NDVI calculation. Attach the NDVI figure here.
+
+
