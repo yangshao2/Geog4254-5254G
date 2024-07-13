@@ -1,0 +1,22 @@
+---
+title: "R Programming for Geospatial Applications"
+output:
+  powerpoint_presentation: default
+  ioslides_presentation: default
+date: "2024-07-13"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Outline
+
+- raster, terra,and mapview libraries 
+  (read raster and shapefile)
+
+- Handling spatial data in R (attributes, field calculator, select by attributes, select by location, summary statistics)
+
+
+
+
