@@ -14,9 +14,44 @@ Model predictors (xi) can be user selected biophysical (e.g., elevation, slope, 
 
 ## Data preparation 
 ## The dependent variable layer
-Please use land cover maps (loudoun1992.tif and loudoun2001.tif) as input to identify forest-to-urban change and stable forest pixels. For this dependent variable raster layer, you need to code all forest-to-urban change locations as 1 and stable forest locations as 0. All other locations should be coded as NoData. 
+Please use the land cover maps (loudoun1992.tif and loudoun2001.tif) to identify forest-to-urban change and stable forest pixels. For this dependent variable raster layer, code all forest-to-urban change locations as 1 and stable forest locations as 0. All other locations should be coded as NoData.
+
+For both loudoun1992.tif and loudoun2001.tif files, the land cover classes are coded as follows:
+1: Forest
+2: Urban
+3: Water
+4: Agricultural land
+5: Barren land
+6: Wetland
 
 
+```{r}
+library(terra)
+
+# Load the land cover maps
+lc1992 <- rast('loudoun1992.tif')
+lc2001 <- rast('loudoun2001.tif')
+
+# Define the codes for forest and urban in your land cover maps
+forest_code <- 1  # Code for forest
+urban_code <- 2   # Code for urban
+
+# Identify forest-to-urban change (1) and stable forest (0)
+# Create an empty raster with the same dimensions as the input rasters
+change_layer <- rast(lc1992)
+values(change_layer) <- NA
+
+# Code forest-to-urban change locations as 1
+forest_to_urban <- (lc1992 == forest_code) & (lc2001 == urban_code)
+values(change_layer)[which(values(forest_to_urban))] <- 1
+
+# Code stable forest locations as 0
+stable_forest <- (lc1992 == forest_code) & (lc2001 == forest_code)
+values(change_layer)[which(values(stable_forest))] <- 0
+
+# Plot the result
+plot(change_layer, main = "Forest to Urban Change and Stable Forest")
+```
 ## Predictors: Elevation, Slope, Distance-to-road
 The DEM (30m resolution) can be downloaded through library 'FedData'. Please install this library. 
 
