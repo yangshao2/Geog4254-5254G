@@ -6,13 +6,13 @@ date: "2024-07-13"
 
 ## Objective
 
-This lab aims to guide you through downloading American Community Survey (ACS) data, specifically focusing on income at the census tract level in Virginia. By the end of this lab, you will be able to:
+This lab aims to guide you through downloading American Community Survey (ACS) data, specifically focusing on income at the census tract level. By the end of this lab, you will be able to:
 
-*Access and download ACS data for Virginia.*
+*Access and download ACS data for one or multiple states.*
 
 *Process and clean the data.*
 
-*Perform basic analysis on income and education levels.*
+*Perform basic analysis on income data.*
 
 Before starting, make sure you have the following packages installed. 
 
@@ -24,6 +24,9 @@ Before starting, make sure you have the following packages installed.
 
 #install.packages("tigris")
 
+#install.packages("mapview")
+
+
 ## Steps
 
 ## Step 1: Load Required Libraries
@@ -33,6 +36,7 @@ library(tidyverse)
 library(tidycensus)
 library(sf)
 library(tigris)
+library(mapview)
 ```
 
 ## Step 2: Set Up Census API Key
@@ -54,7 +58,7 @@ Use the tidycensus package to download ACS data. We'll focus on median household
 # Define variables for median household income
 variables <- c(income = "B19013_001")
 # Download data for Virginia
-acs_data_va <- get_acs(
+acs_data <- get_acs(
   geography = "tract",
   variables = variables,
   state = "VA",
@@ -64,12 +68,12 @@ acs_data_va <- get_acs(
 )
 
 # View the first few rows of the data
-head(acs_data_va)
+head(acs_data)
 
 ```
 ## Step 4: Rename columns for clarity
 ```{r}
-colnames(acs_data_va) <- c("GEOID", "NAME", "variable","Median_Income", "moe","geometry")
+colnames(acs_data) <- c("GEOID", "NAME", "variable","Median_Income", "moe","geometry")
 ```
 
 ## Step 5: Perform Basic Analysis
@@ -77,10 +81,10 @@ Perform basic analysis to explore income levels.
 
 ```{r}
 # Summary statistics for median income
-summary(acs_data_va$Median_Income)
+summary(acs_data$Median_Income)
 
 # Plot median income distribution
-ggplot(acs_data_va, aes(x = Median_Income)) +
+ggplot(acs_data, aes(x = Median_Income)) +
   geom_histogram(binwidth = 5000, fill = "blue", color = "black") +
   labs(title = "Distribution of Median Household Income in Virginia",
        x = "Median Household Income",
@@ -92,19 +96,71 @@ ggplot(acs_data_va, aes(x = Median_Income)) +
 Visualize the data on a map.
 ```{r}
 # Plot median income on a map
-ggplot(acs_data_va) +
+ggplot(acs_data) +
   geom_sf(aes(fill = Median_Income)) +
   scale_fill_viridis_c() +
   labs(title = "Median Household Income by Census Tract in Virginia",
        fill = "Median Income")
 ```
-
-## Step 7: Write Data to a Shapefile
-Save the processed data as a shapefile.
-
+## Step 7: Download ACS/census data for multiple states
 ```{r}
-st_write(acs_data_va, "acs_data_va.shp")
+acs_data <- get_acs(geography = "tract", 
+                   variables = "B19013_001",
+                   state = c("DC", "MD", "VA"),
+                   geometry = TRUE)
+colnames(acs_data) <- c("GEOID", "NAME", "variable","Median_Income", "moe","geometry")
+```
+
+## Step 7: use mapview to visualize the results:
+```{r}
+mapview(acs_data,z='Median_Income')
+```
+
+## Use the Gini index to quantify inequality in the DMV area
+Now that we have income data for DC, VA, and MD, let's focus on the DMV (District of Columbia, Maryland, and Virginia) area for some basic analysis. Specifically, we will quantify inequality using the Gini index. The Gini index is a measure of statistical dispersion intended to represent the income inequality within a region. A Gini index of 0 represents perfect equality, while an index of 1 indicates maximal inequality.
+
+## Step 1: important DMV shapefile
+```{r}
+dmv<-st_read('dmv.shp')
+plot(dmv)
+```
+## Step 2: Select tracts by location (dmv boundary)
+```{r}
+# Transform the CRS of the ACS data to match the DMV shapefile
+acs_data <- st_transform(acs_data, st_crs(dmv))
+
+# Perform the spatial subset
+dmv_data <- acs_data[dmv, ,op = st_intersects]
+```
+
+## Step 3: use mapview to visualize the results:
+```{r}
+mapview(dmv_data,z='Median_Income')
 ```
 
 
+## Step 3: Calculate the Gini index for the entire DMV area
+### install 'ineq' library before you run the following code
+### install.packages('ineq')
+```{r}
+library(ineq)
+gini_index <- Gini(dmv_data$Median_Income)
+
+# Print the Gini index
+print(gini_index)
+
+```
+## Step 4: Write Data to a Shapefile
+Save the processed data as a shapefile.
+```{r}
+st_write(dmv_data, "acs_data_dmv.shp", delete_layer = TRUE)
+```
+## Lab questions:
+1. Identify and Report the Tract with the Highest Median Income in DMV
+
+2. Identify and Report the Tract with the Lowest Median Income in DMV
+
+3. Calculate the Gini index for the Richmond, VA Metro Area. The spatial boundary of the Richmond Metro Area [Richmond_metro.shp] is included in the Lab 4 folder. You will need to revise the script, particularly the section on selecting by location, as well as parts of the lab steps to obtain the answer.
+
+4. Create a map visualizing the median household income for each tract within the Richmond VA Metro area using the tmap package. Attach the resulting map.
 
