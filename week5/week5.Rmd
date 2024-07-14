@@ -1,0 +1,173 @@
+---
+title: "R Programming for Geospatial Applications"
+output:
+  powerpoint_presentation: default
+  ioslides_presentation: default
+date: "2024-07-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Outline
+
+- *Download geospatial data using R libraries *  
+
+<br>
+
+<br>
+
+- *For loop (examples)*  
+
+## Commonly use geospatial data
+- Administrative boundaries 
+- Census data (population by block groups, income, education level, county, etc.)
+- Roads
+- DEM
+- NLCD
+- The Global Historical Climatology Network (GHCN)
+- Soil
+
+## Recreation Park Siting Project (Geog4084/5084)
+Please download population (block group level), primary and second roads, DEM, soil, and NLCD 2019 data for Loudoun County, VA 
+
+## Automate data downloading 
+- *tidycensus*: designed to help R users get Census data that is pre-prepared for exploration within the tidyverse, and optionally spatially with sf.
+
+<br>
+
+- *tigris*: download census TIGER/Line Shapefiles
+
+<br>
+
+- *FedData*: Functions to automate downloading geospatial data available from several federated data sources (mainly sources maintained by the US Federal government). 
+
+## tidycensus
+### replace my api key with your CENSUS API key
+### .Renviron file so it can be called securely without being stored in your code
+```{r,echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+library(tidycensus)
+census_api_key("e23a9a88f3a3911be51aed1a0e9c595a10e35b59",overwrite = TRUE)
+readRenviron("~/.Renviron")
+```
+## tidycensus
+```{r,echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+library(tidycensus)
+pop2010 <- get_decennial(geography = "county", 
+                         variables = 'P001001', 
+                         year = 2010, state="VA", 
+                         geometry = TRUE)
+```
+
+## tidycensus
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+head(pop2010)
+```
+
+## tidycensus
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+plot(pop2010["value"])
+```
+
+## Downloading ACS Data Using tidycensus
+American Community Survey (ACS): A detailed annual survey conducted by the U.S. Census Bureau.
+
+```{r,echo=TRUE, message=FALSE, warning=FALSE, results='hide'}
+library(tidycensus)
+library(dplyr)
+##Download median household income for all counties in 2019.
+income_data <- get_acs(geography = "county",
+                       variables = "B19013_001",
+                       year = 2019,
+                       geometry=TRUE,
+                       survey = "acs5")
+```
+
+## view income data
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+head(income_data)
+print(dim(income_data))
+```
+
+
+## plot income data
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+library(tmap)
+library(dplyr)
+library(stringr)
+ca_income_data <- income_data %>% filter(str_starts(GEOID, "06"))
+qtm(ca_income_data,fill='estimate')
+```
+## tigris
+
+- tigris: An R package that provides access to geographic data from the U.S. Census Bureau.
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+library(tigris)
+library(sf)
+options(tigris_class = "sf")
+ca_roads <- primary_secondary_roads(state = "VA", year = 2020)
+plot(st_geometry(ca_roads))
+
+```
+
+## FedData library
+- The National Elevation Dataset digital elevation models 
+- The National Hydrography Dataset (USGS)
+- The Soil Survey Geographic (SSURGO) database 
+- The Global Historical Climatology Network (GHCN)
+- Daymet gridded estimates of daily weather parameters for North 	America, version 3
+- The International Tree Ring Data Bank
+- National Land Cover Database (NLCD).
+
+## FedData example
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+library(FedData)
+
+```
+
+## Outline
+
+- *Download geospatial data using R libraries *  
+
+<br>
+
+<br>
+
+- *For loop (examples)*  
+
+## For loop
+- A for loop allows you to iterate over a sequence of elements, performing a set of operations for each element.
+
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+for (i in 1:5) {
+  print(i)
+}
+```
+## Another example
+
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+numbers <- c(1, 2, 3, 4, 5)
+total <- 0
+
+for (num in numbers) {
+  total <- total + num
+  print(total)
+}
+
+print(total)
+```
+## GIS task: download ACS income data for all states
+
+
+
+
+
+
+
+
+
+
+
+
+
