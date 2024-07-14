@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ![](landcover.png)
 
 ## Example of raster data (DEM)
-```{r}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 library(terra)
 dem<-rast('elev.tif')
 dem
@@ -35,7 +35,7 @@ plot(dem)
 ```
 
 ## pcp data
-```{r}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 a<-rast('PRISM_ppt_30yr_normal_4kmM2_annual_asc.asc')
 plot(a)
 ```
@@ -74,17 +74,17 @@ plot(a)
 ![](sf.gif)
 
 ## Read a shapefile (y2010.shp)  
-```{r, echo=TRUE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 library(sf)
 pophu <- st_read('y2010.shp')
 ```
 ## data frame (attribute table)
-```{r}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 head(pophu)
 ```
 
 ## plot the sf data frame
-```{r}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 plot(pophu["POP10"])
 ```
 
@@ -109,26 +109,26 @@ plot(pophu["POP10"])
 ![](att.png)
 
 #sf data frame - Just like the attribute table 
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 head(pophu)
 ```
 
 ## Use st_area() function for area calculation 
 add the results as a new column (new field named as area) in the attribute table
-```{r, echo=TRUE}
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
 pophu$area <- as.numeric(st_area(pophu))
 head(pophu)
 ```
 
 ## Plot 
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 plot(pophu["area"])
 
 ```
 
 ## Export data as ESRI shapefile
 You can add the resultant test1.shp to ArcGIS
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 st_write(pophu,'test1.shp',delete_dsn = TRUE)
 ```
 
@@ -138,16 +138,25 @@ st_write(pophu,'test1.shp',delete_dsn = TRUE)
 
 
 ## Handling spatial data in R ( select by attributes, select by location, summary statistics)
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 a<-pophu[pophu$POP10>1000,]
 plot(a["POP10"])
 ```
 ## Select by location
-```{r,echo=TRUE}
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
 county<-st_read('mycounty.shp')
 county_proj<-st_transform(county,crs(pophu))
 pophu_withincounty<-st_intersection(pophu,county_proj)
 plot(pophu_withincounty["POP10"])
+
 ```
 
+
 ## summary statistics
+```{r,echo=TRUE, message=FALSE, warning=FALSE}
+# Summary of a specific attribute column
+summary(pophu_withincounty$POP10)
+hist(pophu_withincounty$POP10,breaks=100)
+```
+
+
