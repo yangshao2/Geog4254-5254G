@@ -86,7 +86,7 @@ plot(storm['V'])
 ## Select points based on user-defined threshold value? (e.g, >1.6m)
 ```{r,echo=TRUE, message=FALSE, warning=FALSE}
 
-storm_new <- storm[storm$V>1.6,]
+storm_new <- storm[storm$V>1.0&storm$V<1.5,]
 plot(storm_new['V'])
 ```
 
@@ -116,7 +116,7 @@ plot(stream,add=T)
 ## Add 90m buffer
 
 ```{r,echo=TRUE, message=FALSE, warning=FALSE}
-buffer_90m <- st_buffer(stream, dist = 90)
+buffer_90m <- st_buffer(stream, dist = 900)
 plot(dem)
 plot(stream,add=T)
 # Plot the buffer on top of the DEM and stream

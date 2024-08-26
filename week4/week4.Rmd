@@ -57,7 +57,7 @@ Next, map layers, additional map elements, and overall layout can be customized.
 ```{r,echo=TRUE, message=FALSE, warning=FALSE}
 tm_shape(income_va)+
 	tm_polygons("income",palette = c("yellow", "darkgreen"))+
-  tm_layout(title='Income for VA',legend.text.size = 0.5)
+  tm_layout(title='Income data for VA',legend.text.size = 1)
 ```
 
 
@@ -74,7 +74,7 @@ tm_shape(income_va)+
             title.position=c("center","top"),
             legend.text.size = 0.5,
             legend.position=c("left","top"))+
-  tm_scale_bar(breaks = c(0, 10,20), text.size = 0.5, position=c("right", "bottom"))+
+  tm_scale_bar(breaks = c(0, 40,80), text.size = 0.5, position=c("right", "bottom"))+
   tm_compass(type = "4star", size = 3, position = c("right", "top"))
 
 ```
@@ -96,9 +96,15 @@ tm_shape(income_va)+
 ## Example uisng tmap
 ```{r,echo=TRUE, message=FALSE, warning=FALSE}
 tm_shape(income_va) + 
-  tm_polygons("income", style = "jenks",n=7) + 
+  tm_polygons("income", style = "jenks",n=5) + 
   tm_layout(title = "Income with Natural Breaks")
 
+```
+```{r,cho=TRUE, message=FALSE, warning=FALSE}
+tmap_mode("plot")
+tm_shape(income_va) + 
+  tm_polygons("income", style = "jenks",n=7) + 
+  tm_layout(title = "Income with Natural Breaks")
 ```
 
 ## Mapping with raster data (continuous variable)
